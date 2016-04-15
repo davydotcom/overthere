@@ -588,7 +588,7 @@ public class WinRmClient {
      * Create the HttpEntity to send in the request.
      */
     protected HttpEntity createEntity(final String requestDocAsString) {
-		return new KerberosStringEntity(requestDocAsString, "application/soap+xml");
+		return new KerberosStringEntity(requestDocAsString, "application/soap+xml","UTF-8");
     }
 
     public void setWinRmTimeout(String timeout) {

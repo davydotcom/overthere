@@ -7,6 +7,7 @@ import com.xebialabs.overthere.util.gss.GssIOVBufferDesc;
 import com.xebialabs.overthere.util.gss.LibGss;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
@@ -20,16 +21,16 @@ import java.nio.ByteBuffer;
  *
  * @author David Estes
  */
-public class KerberosStringEntity implements HttpEntity, GssTokenAware{
+public class KerberosStringEntity extends AbstractHttpEntity implements GssTokenAware{
 
-	protected String contentType;
 	protected String content;
 	protected byte[] body;
 	private GssCli gssCli;
 
-	public KerberosStringEntity(String content, String contentType) {
+	public KerberosStringEntity(String content, String contentType, String encoding) {
 		this.content = content;
-		this.contentType = contentType;
+		this.setContentType(contentType);
+		this.setContentEncoding(encoding);
 	}
 
 
@@ -89,15 +90,11 @@ public class KerberosStringEntity implements HttpEntity, GssTokenAware{
 	@Override
 	public Header getContentType() {
 		if(gssCli != null) {
-			new BasicHeader("Content-Type","multipart/encrypted;protocol=\"application/HTTP-Kerberos-session-encrypted\";boundary=\"Encrypted Boundary\"");
+			return new BasicHeader("Content-Type","multipart/encrypted;protocol=\"application/HTTP-Kerberos-session-encrypted\";boundary=\"Encrypted Boundary\"");
 		}
-		return new BasicHeader("Content-Type", contentType + ";charset=UTF-8");
+		return super.getContentType();
 	}
 
-	@Override
-	public Header getContentEncoding() {
-		return null;
-	}
 
 	@Override
 	public InputStream getContent() throws IOException, UnsupportedOperationException {
