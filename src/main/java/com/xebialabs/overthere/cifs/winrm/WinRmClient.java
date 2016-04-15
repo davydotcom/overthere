@@ -413,7 +413,7 @@ public class WinRmClient {
                 final String requestBody = toString(requestDocument);
                 logger.trace("Request:\nPOST {}\n{}", targetURL, requestBody);
 
-                final HttpEntity entity = createEntity(requestBody);
+                final HttpEntity entity = createEntity(requestBody, context);
                 request.setEntity(entity);
 
                 final HttpResponse response = httpClient.execute(request, context);
@@ -587,9 +587,9 @@ public class WinRmClient {
     /**
      * Create the HttpEntity to send in the request.
      */
-    protected HttpEntity createEntity(final String requestDocAsString) {
+    protected HttpEntity createEntity(final String requestDocAsString, HttpContext context) {
 //		return new KerberosStringEntity(requestDocAsString, "application/soap+xml","UTF-8");
-		return new KerberosStringEntity(requestDocAsString, ContentType.create("application/soap+xml", "UTF-8"));
+		return new KerberosStringEntity(requestDocAsString, ContentType.create("application/soap+xml", "UTF-8"), context);
     }
 
     public void setWinRmTimeout(String timeout) {

@@ -22,6 +22,7 @@
  */
 package com.xebialabs.overthere.cifs.winrm;
 
+import com.xebialabs.overthere.util.gss.GssCli;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpRequest;
@@ -112,11 +113,13 @@ class WsmanKerberosScheme extends KerberosScheme {
 	@Override
 	public Header authenticate(Credentials credentials, HttpRequest request, HttpContext context) throws AuthenticationException {
 		Header hdr = super.authenticate(credentials,request,context);
-		if(request instanceof HttpEntityEnclosingRequestBase) {
-			HttpEntityEnclosingRequestBase enclosingRequest = (HttpEntityEnclosingRequestBase)request;
-			HttpEntity entity = enclosingRequest.getEntity();
-			if(token != null && entity != null && entity instanceof GssTokenAware) {
-				((GssTokenAware)entity).initContext(context, token,spn);
+		if(token != null) {
+			try {
+				GssCli gssCli = new GssCli(spn,null);
+				gssCli.initContext(token,null,true);
+				context.setAttribute("gssCli",gssCli);
+			} catch(Exception ex) {
+				logger.error("Error initializing native gssCli library");
 			}
 		}
 		return hdr;

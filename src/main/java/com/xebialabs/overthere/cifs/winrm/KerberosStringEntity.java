@@ -28,15 +28,17 @@ import java.nio.charset.UnsupportedCharsetException;
  * @author David Estes
  */
 @NotThreadSafe
-public class KerberosStringEntity extends StringEntity implements GssTokenAware, Cloneable{
+public class KerberosStringEntity extends StringEntity implements Cloneable{
 
 //	protected String content;
 	protected byte[] body;
 	private Charset charset;
 	private GssCli gssCli;
 	private String sourceText;
-	public KerberosStringEntity(final String string, final ContentType contentType) throws UnsupportedCharsetException {
+	private HttpContext context;
+	public KerberosStringEntity(final String string, final ContentType contentType, HttpContext context) throws UnsupportedCharsetException {
 		super(string,contentType);
+		this.context = context;
 		Args.notNull(string, "Source string");
 		charset = contentType != null ? contentType.getCharset() : null;
 		if (charset == null) {
@@ -52,6 +54,9 @@ public class KerberosStringEntity extends StringEntity implements GssTokenAware,
 
 
 	private byte[] getBody() {
+		if(gssCli == null) {
+			initContextAttempt();
+		}
 		if(body != null){
 			return body;
 		}
@@ -136,21 +141,25 @@ public class KerberosStringEntity extends StringEntity implements GssTokenAware,
 	}
 
 
-	@Override
-	public void initContext(HttpContext context, byte[] token, String serviceName) {
-		this.body = null; //reset body since it now might be encrypted
-
-		try {
-			if(gssCli == null) {
-				gssCli = new GssCli(serviceName, null);
-			}
-			logger.debug("Received Token: " + token);
-			byte[] outToken = gssCli.initContext(token,null,true);
-			logger.debug("Lib Gss Output Token: " + outToken);
-			context.setAttribute("gssCli", gssCli);
-		} catch(Exception ex) {
-			logger.error("Error Initializing Native LibGss Cli Context (Encryption not supported): " + ex.getMessage(),ex);
+	public void initContextAttempt() {
+		//byte[] token, String serviceName
+		gssCli = (GssCli)context.getAttribute("gssCli");
+		if(gssCli != null) {
+			this.body = null; //reset body since it now might be encrypted
 		}
+
+
+//		try {
+//			if(gssCli == null) {
+//				gssCli = new GssCli(serviceName, null);
+//			}
+//			logger.debug("Received Token: " + token);
+//			byte[] outToken = gssCli.initContext(token,null,true);
+//			logger.debug("Lib Gss Output Token: " + outToken);
+//			context.setAttribute("gssCli", gssCli);
+//		} catch(Exception ex) {
+//			logger.error("Error Initializing Native LibGss Cli Context (Encryption not supported): " + ex.getMessage(),ex);
+//		}
 	}
 
 	public EncryptedMessage encryptMessage(String content) {
