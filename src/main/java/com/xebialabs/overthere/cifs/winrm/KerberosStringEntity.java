@@ -25,10 +25,12 @@ public class KerberosStringEntity extends AbstractHttpEntity implements GssToken
 
 	protected String content;
 	protected byte[] body;
+	private String charSet;
 	private GssCli gssCli;
 
 	public KerberosStringEntity(String content, String contentType, String encoding) {
 		this.content = content;
+		this.charSet = encoding;
 		this.setContentType(contentType);
 		this.setContentEncoding(encoding);
 	}
@@ -44,7 +46,7 @@ public class KerberosStringEntity extends AbstractHttpEntity implements GssToken
 		}
 
 		if(gssCli != null) {
-			int originalLength = content.getBytes(HTTP.DEF_CONTENT_CHARSET).length;
+			int originalLength = content.getBytes(charSet).length;
 			EncryptedMessage emsg = encryptMessage(content);
 			int totalLength= originalLength + emsg.padLength;
 
@@ -56,16 +58,16 @@ public class KerberosStringEntity extends AbstractHttpEntity implements GssToken
 			strBuilder.append("Content-Type: application/octet-stream\r\n");
 			ByteArrayOutputStream buffer = new ByteArrayOutputStream(totalLength);
 			try {
-				buffer.write(strBuilder.toString().getBytes(HTTP.DEF_CONTENT_CHARSET));
+				buffer.write(strBuilder.toString().getBytes(charSet));
 				buffer.write(emsg.message);
-				buffer.write("--Encrypted Boundary--\r\n".getBytes(HTTP.DEF_CONTENT_CHARSET));
+				buffer.write("--Encrypted Boundary--\r\n".getBytes(charSet));
 			} catch(IOException ex) {
 				//also not going to happen.
 			}
 
 			body = buffer.toByteArray();
 		} else {
-			body = content.getBytes();
+			body = content.getBytes(charSet);
 		}
 		logger.debug("Sending Request SOAP Body: " + new String(body));
 		return body;
