@@ -53,17 +53,20 @@ public class GssCli {
 		Pattern p = Pattern.compile("[A-Za-z0-9]+/[^@]+@.+$");
 		Matcher m = p.matcher(str);
 		GssOID mech;
+		logger.debug("Gss Import Name " + str);
 		if(m.matches()) {
 			mech = GssOID.noOid();
 		} else {
+			logger.debug("This is an NT_HOSTBASED_SERVICE");
 			NativeLibrary libraryInstance = NativeLibrary.getInstance(Platform.isMac() ? "libgssapi_krb5.dylib" : (Platform.isLinux() ? "libgssapi_krb5.so.2" : "C:\\Program Files (x86)\\MIT\\Kerberos\\bin\\gssapi32.dll"));
 			Pointer GSS_C_NT_HOSTBASED_SERVICE  = libraryInstance.getGlobalVariableAddress("GSS_C_NT_HOSTBASED_SERVICE");
 			Pointer GSS_C_NT_EXPORT_NAME  = libraryInstance.getGlobalVariableAddress("GSS_C_NT_EXPORT_NAME");
 			mech = new GssOID(GSS_C_NT_HOSTBASED_SERVICE.getPointer(0));
-//			System.out.println("Reading Mech Length, " + mech.length);
+
 		}
 		minStat = new Memory(INT32_SIZE); //32bit int
 		Pointer name = new Memory(Native.POINTER_SIZE);
+		logger.debug("Calling native import name");
 		majStat = LibGss.INSTANCE.gss_import_name(minStat, buffer.getPointer(), mech, name);
 
 		if(majStat != 0) {
