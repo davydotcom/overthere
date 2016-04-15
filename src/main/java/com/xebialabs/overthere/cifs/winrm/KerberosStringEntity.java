@@ -9,6 +9,8 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.entity.AbstractHttpEntity;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
@@ -18,25 +20,35 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.UnsupportedCharsetException;
 
 /**
  *
  * @author David Estes
  */
 @NotThreadSafe
-public class KerberosStringEntity extends AbstractHttpEntity implements GssTokenAware, Cloneable{
+public class KerberosStringEntity extends StringEntity implements GssTokenAware, Cloneable{
 
-	protected String content;
+//	protected String content;
 	protected byte[] body;
-	private String charSet;
+	private Charset charset;
 	private GssCli gssCli;
+	private String sourceText;
+	public KerberosStringEntity(final String string, final ContentType contentType) throws UnsupportedCharsetException {
+		super(string,contentType);
+		Args.notNull(string, "Source string");
+		charset = contentType != null ? contentType.getCharset() : null;
+		if (charset == null) {
+			charset = HTTP.DEF_CONTENT_CHARSET;
+		}
+		this.sourceText = string;
 
-	public KerberosStringEntity(String content, String contentType, String encoding) {
-		this.content = content;
-		this.charSet = encoding;
-		this.setContentType(contentType);
-		this.setContentEncoding(encoding);
+		if (contentType != null) {
+			setContentType(contentType.toString());
+		}
 	}
+
 
 
 	private byte[] getBody() {
@@ -44,17 +56,17 @@ public class KerberosStringEntity extends AbstractHttpEntity implements GssToken
 			return body;
 		}
 
-		if(content == null || content.length() == 0) {
+		if(sourceText == null || sourceText.length() == 0) {
 			return new byte[0];
 		}
 
 		try {
 			if(gssCli != null) {
-				int originalLength = content.getBytes(charSet).length;
-				EncryptedMessage emsg = encryptMessage(content);
+				int originalLength = sourceText.getBytes(charset.name()).length;
+				EncryptedMessage emsg = encryptMessage(sourceText);
 				int totalLength = originalLength + emsg.padLength;
 
-				StringBuilder strBuilder = new StringBuilder(content.length());
+				StringBuilder strBuilder = new StringBuilder(sourceText.length());
 				strBuilder.append("--Encrypted Boundary\r\n");
 				strBuilder.append("Content-Type: application/HTTP-Kerberos-session-encrypted\r\n");
 				strBuilder.append("OriginalContent: type=application/soap+xml;charset=UTF-8;Length=" + totalLength + "\r\n");
@@ -62,16 +74,16 @@ public class KerberosStringEntity extends AbstractHttpEntity implements GssToken
 				strBuilder.append("Content-Type: application/octet-stream\r\n");
 				ByteArrayOutputStream buffer = new ByteArrayOutputStream(totalLength);
 				try {
-					buffer.write(strBuilder.toString().getBytes(charSet));
+					buffer.write(strBuilder.toString().getBytes(charset.name()));
 					buffer.write(emsg.message);
-					buffer.write("--Encrypted Boundary--\r\n".getBytes(charSet));
+					buffer.write("--Encrypted Boundary--\r\n".getBytes(charset.name()));
 				} catch(IOException ex) {
 					//also not going to happen.
 				}
 
 				body = buffer.toByteArray();
 			} else {
-				body = content.getBytes(charSet);
+				body = sourceText.getBytes(charset.name());
 			}
 		}catch (final UnsupportedEncodingException ex) {
 			// should never happen
