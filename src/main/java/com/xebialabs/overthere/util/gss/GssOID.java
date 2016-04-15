@@ -14,6 +14,7 @@ public class GssOID extends Structure implements Structure.ByReference {
 	public Pointer elements;
 
 	public GssOID() {
+		allocateMemory();
 	}
 
 	protected List<String> getFieldOrder() {
@@ -22,6 +23,7 @@ public class GssOID extends Structure implements Structure.ByReference {
 
 	public GssOID(Pointer p) {
 		super(p);
+		allocateMemory();
 		read();
 	}
 
