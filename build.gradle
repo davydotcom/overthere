@@ -58,6 +58,7 @@ dependencies {
   runtime 'org.bouncycastle:bcprov-jdk15on:1.52'
 
   // CIFS
+  compile 'net.java.dev.jna:jna:4.2.2'
   compile 'jcifs:jcifs:1.3.17'
 
   // Telnet
@@ -111,7 +112,9 @@ test {
   useTestNG()
 
   excludes = ['**/*Itest.*']
-
+	testLogging {
+		showStandardStreams = true
+	}
   maxHeapSize = "512m"
 }
 

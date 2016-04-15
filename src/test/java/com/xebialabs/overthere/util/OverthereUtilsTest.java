@@ -22,11 +22,17 @@
  */
 package com.xebialabs.overthere.util;
 
+import com.sun.jna.Memory;
+import com.sun.jna.Native;
+import com.sun.jna.Pointer;
 import com.xebialabs.overthere.ConnectionOptions;
 import com.xebialabs.overthere.OverthereFile;
 import com.xebialabs.overthere.itest.OverthereConnectionItestBase;
 import com.xebialabs.overthere.local.LocalConnection;
 import com.xebialabs.overthere.local.LocalFile;
+import com.xebialabs.overthere.util.gss.GssCli;
+import com.xebialabs.overthere.util.gss.GssIOVBufferDesc;
+import com.xebialabs.overthere.util.gss.LibGss;
 import org.testng.annotations.Test;
 
 import static com.xebialabs.overthere.ConnectionOptions.TEMPORARY_DIRECTORY_PATH;
@@ -60,4 +66,27 @@ public class OverthereUtilsTest extends OverthereConnectionItestBase {
         assertTrue(folderTwo.exists());
         assertNotEquals(folderOne.getPath(), folderTwo.getPath());
     }
+
+
+	@Test
+	public void shouldInitializzeGssJNI() throws Exception {
+		assertTrue(LibGss.INSTANCE != null);
+
+		GssCli gsscli = new GssCli("DAVIDESTES-PC","WSMAN",null);
+
+		System.out.println("Context Token: " + gsscli.initContext());
+
+		GssIOVBufferDesc[] iov = new GssIOVBufferDesc[3];
+
+		iov[0] = new GssIOVBufferDesc();
+		iov[0].type = LibGss.GSS_IOV_BUFFER_TYPE_HEADER | LibGss.GSS_IOV_BUFFER_FLAG_ALLOCATE;
+		iov[1] = new GssIOVBufferDesc();
+		iov[1].type = LibGss.GSS_IOV_BUFFER_TYPE_DATA;
+		iov[1].buffer.setValue("blah");
+
+		iov[2] = new GssIOVBufferDesc();
+		iov[2].type = LibGss.GSS_IOV_BUFFER_TYPE_PADDING | LibGss.GSS_IOV_BUFFER_FLAG_ALLOCATE;
+
+
+	}
 }

@@ -22,9 +22,15 @@
  */
 package com.xebialabs.overthere.cifs.winrm;
 
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpRequest;
+import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.KerberosCredentials;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.impl.auth.KerberosScheme;
+import org.apache.http.protocol.HttpContext;
 import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSCredential;
 import org.ietf.jgss.GSSException;
@@ -39,7 +45,8 @@ class WsmanKerberosScheme extends KerberosScheme {
     private final String spnServiceClass;
 
     private final String spnAddress;
-
+	private byte[] token;
+	private String spn;
     private final int spnPort;
 
     public WsmanKerberosScheme(final boolean stripPort, final String spnServiceClass, final String spnAddress, final int spnPort) {
@@ -62,6 +69,7 @@ class WsmanKerberosScheme extends KerberosScheme {
     }
 
     private byte[] doGenerateGSSToken(final byte[] input, final Oid oid, final String authServer, final Credentials credentials) throws GSSException {
+
         byte[] token = input;
         if (token == null) {
             token = new byte[0];
@@ -95,8 +103,24 @@ class WsmanKerberosScheme extends KerberosScheme {
         GSSContext gssContext = manager.createContext(canonicalizedName, oid, gssCredential, GSSContext.DEFAULT_LIFETIME);
         gssContext.requestMutualAuth(true);
         gssContext.requestCredDeleg(true);
-        return gssContext.initSecContext(token, 0, token.length);
+		this.token = gssContext.initSecContext(token, 0, token.length);
+		this.spn = spn;
+        return this.token;
     }
+
+
+	@Override
+	public Header authenticate(Credentials credentials, HttpRequest request, HttpContext context) throws AuthenticationException {
+		Header hdr = super.authenticate(credentials,request,context);
+		if(request instanceof HttpEntityEnclosingRequestBase) {
+			HttpEntityEnclosingRequestBase enclosingRequest = (HttpEntityEnclosingRequestBase)request;
+			HttpEntity entity = enclosingRequest.getEntity();
+			if(token != null && entity != null && entity instanceof GssTokenAware) {
+				((GssTokenAware)entity).initContext(context, new String(token),spn);
+			}
+		}
+		return hdr;
+	}
 
     private static final Logger logger = LoggerFactory.getLogger(WsmanKerberosScheme.class);
 

@@ -533,6 +533,7 @@ public class WinRmClient {
      * Handle the httpResponse and return the SOAP XML String.
      */
     protected String handleResponse(final HttpResponse response, final HttpContext context) throws IOException {
+
         final HttpEntity entity = response.getEntity();
         if (null == entity.getContentType() || !entity.getContentType().getValue().startsWith("application/soap+xml")) {
             throw new WinRmRuntimeIOException("Error when sending request to " + targetURL + "; Unexpected content-type: " + entity.getContentType());
@@ -552,9 +553,11 @@ public class WinRmClient {
             closeQuietly(is);
             consume(response.getEntity());
         }
-
+			//TODO: Handle Kerberos Decryption response
         return writer.toString();
     }
+
+
 
     private static String toString(Document doc) {
         StringWriter stringWriter = new StringWriter();
@@ -572,7 +575,7 @@ public class WinRmClient {
      * Create the HttpEntity to send in the request.
      */
     protected HttpEntity createEntity(final String requestDocAsString) {
-        return new StringEntity(requestDocAsString, ContentType.create("application/soap+xml", "UTF-8"));
+		return new KerberosStringEntity(requestDocAsString, "application/soap+xml");
     }
 
     public void setWinRmTimeout(String timeout) {
