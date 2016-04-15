@@ -116,7 +116,7 @@ class WsmanKerberosScheme extends KerberosScheme {
 			HttpEntityEnclosingRequestBase enclosingRequest = (HttpEntityEnclosingRequestBase)request;
 			HttpEntity entity = enclosingRequest.getEntity();
 			if(token != null && entity != null && entity instanceof GssTokenAware) {
-				((GssTokenAware)entity).initContext(context, new String(token),spn);
+				((GssTokenAware)entity).initContext(context, token,spn);
 			}
 		}
 		return hdr;

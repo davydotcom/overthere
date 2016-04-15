@@ -62,6 +62,7 @@ public class KerberosStringEntity extends StringEntity implements GssTokenAware,
 
 		try {
 			if(gssCli != null) {
+				logger.debug("Gss lib detected, encrypting body");
 				int originalLength = sourceText.getBytes(charset.name()).length;
 				EncryptedMessage emsg = encryptMessage(sourceText);
 				int totalLength = originalLength + emsg.padLength;
@@ -136,7 +137,7 @@ public class KerberosStringEntity extends StringEntity implements GssTokenAware,
 
 
 	@Override
-	public void initContext(HttpContext context, String token, String serviceName) {
+	public void initContext(HttpContext context, byte[] token, String serviceName) {
 		this.body = null; //reset body since it now might be encrypted
 
 		try {
@@ -144,7 +145,7 @@ public class KerberosStringEntity extends StringEntity implements GssTokenAware,
 				gssCli = new GssCli(serviceName, null);
 			}
 			logger.debug("Received Token: " + token);
-			String outToken = gssCli.initContext(token,null,true);
+			byte[] outToken = gssCli.initContext(token,null,true);
 			logger.debug("Lib Gss Output Token: " + outToken);
 			context.setAttribute("gssCli", gssCli);
 		} catch(Exception ex) {
@@ -167,9 +168,9 @@ public class KerberosStringEntity extends StringEntity implements GssTokenAware,
 
 		Pointer confState = new Memory(GssCli.INT32_SIZE);
 		Pointer minStat = new Memory(GssCli.INT32_SIZE);
-
+		logger.debug("Calling gss wrap library");
 		LibGss.INSTANCE.gss_wrap_iov(minStat, gssCli.getContext(),1,LibGss.GSS_C_QOP_DEFAULT,confState,iov,iovCount);
-
+		logger.debug("Got response from wrap");
 		ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
 		ByteBuffer intLen = ByteBuffer.allocate(4);
 		intLen.putInt(iov[0].buffer.length);

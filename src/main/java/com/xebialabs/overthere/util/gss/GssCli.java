@@ -1,6 +1,9 @@
 package com.xebialabs.overthere.util.gss;
 
 import com.sun.jna.*;
+import com.xebialabs.overthere.cifs.winrm.KerberosStringEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -69,7 +72,7 @@ public class GssCli {
 		return name.getPointer(0);
 	}
 
-	public String initContext(String inputToken, Integer flags, boolean delegate) {
+	public byte[] initContext(byte[] inputToken, Integer flags, boolean delegate) {
 		minStat = new Memory(INT32_SIZE); //32bit int
 		Pointer pctx = new Memory(Pointer.SIZE);
 
@@ -91,29 +94,39 @@ public class GssCli {
 			}
 		}
 
-
 		GssBufferDesc inTok = new GssBufferDesc();
-		inTok.setValue(inputToken);
+		if(inputToken != null) {
+			Pointer inTokByte = new Memory(inputToken.length+1);
+			inTokByte.write(0,inputToken,0,inputToken.length);
+			inTok.value = inTokByte;
+			inTok.length = inputToken.length;
+		}
+
 		GssBufferDesc outTok = new GssBufferDesc();
 
 		Pointer returnFlags = new Memory(INT32_SIZE);
 		majStat = LibGss.INSTANCE.gss_init_sec_context(minStat, null, pctx, intSvcName, mech, flags, 0 ,null, inTok.getPointer(), null, outTok.getPointer(), returnFlags, null);
 		if(majStat == 1) {
-			return outTok.getValue();
+			logger.debug("Native gss InitContext majState = 1 - " + (outTok.length > 0 ? outTok.value.getByteArray(0,outTok.length) : null));
+			return outTok.length > 0 ? outTok.value.getByteArray(0,outTok.length) : null;
 		}
+		logger.debug("Not resultant token");
 		return null;
 	}
 
-	public String initContext(String inputToken) {
+	public byte[] initContext(byte[] inputToken) {
 		return initContext(inputToken,null,false);
 	}
 
-	public String initContext(Integer flags, boolean delegate) {
+	public byte[] initContext(Integer flags, boolean delegate) {
 		return initContext(null,flags,delegate);
 	}
 
-	public String initContext() {
+	public byte[] initContext() {
 		return initContext(null,null,false);
 	}
+
+	private static Logger logger = LoggerFactory.getLogger(KerberosStringEntity.class);
+
 
 }
