@@ -66,6 +66,7 @@ public class KerberosStringEntity implements HttpEntity, GssTokenAware{
 		} else {
 			body = content.getBytes();
 		}
+		logger.debug("Sending Request SOAP Body: " + new String(body));
 		return body;
 	}
 
@@ -131,7 +132,9 @@ public class KerberosStringEntity implements HttpEntity, GssTokenAware{
 			if(gssCli == null) {
 				gssCli = new GssCli(serviceName, null);
 			}
-			gssCli.initContext(token,null,true);
+			logger.debug("Received Token: " + token);
+			String outToken = gssCli.initContext(token,null,true);
+			logger.debug("Lib Gss Output Token: " + outToken);
 			context.setAttribute("gssCli", gssCli);
 		} catch(Exception ex) {
 			logger.error("Error Initializing Native LibGss Cli Context (Encryption not supported): " + ex.getMessage(),ex);
