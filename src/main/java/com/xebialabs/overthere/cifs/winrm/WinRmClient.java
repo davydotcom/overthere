@@ -22,9 +22,14 @@
  */
 package com.xebialabs.overthere.cifs.winrm;
 
+import com.sun.jna.Memory;
+import com.sun.jna.Pointer;
 import com.xebialabs.overthere.cifs.WinrmHttpsCertificateTrustStrategy;
 import com.xebialabs.overthere.cifs.WinrmHttpsHostnameVerificationStrategy;
 import com.xebialabs.overthere.cifs.winrm.soap.*;
+import com.xebialabs.overthere.util.gss.GssCli;
+import com.xebialabs.overthere.util.gss.GssIOVBufferDesc;
+import com.xebialabs.overthere.util.gss.LibGss;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -538,23 +543,31 @@ public class WinRmClient {
         if (null == entity.getContentType() || !entity.getContentType().getValue().startsWith("application/soap+xml")) {
             throw new WinRmRuntimeIOException("Error when sending request to " + targetURL + "; Unexpected content-type: " + entity.getContentType());
         }
-
-        final InputStream is = entity.getContent();
-        final Writer writer = new StringWriter();
-        final Reader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-        try {
-            int n;
-            final char[] buffer = new char[1024];
-            while ((n = reader.read(buffer)) != -1) {
-                writer.write(buffer, 0, n);
-            }
-        } finally {
-            closeQuietly(reader);
-            closeQuietly(is);
-            consume(response.getEntity());
-        }
-			//TODO: Handle Kerberos Decryption response
-        return writer.toString();
+		GssCli gssCli = (GssCli)context.getAttribute("gssCli");
+		final InputStream is = entity.getContent();
+		if(gssCli != null) {
+			try {
+				return winrmDecrypt(gssCli, is);
+			} finally {
+				consume(response.getEntity());
+				closeQuietly(is);
+			}
+		} else {
+			final Writer writer = new StringWriter();
+			final Reader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+			try {
+				int n;
+				final char[] buffer = new char[1024];
+				while ((n = reader.read(buffer)) != -1) {
+					writer.write(buffer, 0, n);
+				}
+			} finally {
+				closeQuietly(reader);
+				closeQuietly(is);
+				consume(response.getEntity());
+			}
+			return writer.toString();
+		}
     }
 
 
@@ -636,4 +649,120 @@ public class WinRmClient {
 
     private static Logger logger = LoggerFactory.getLogger(WinRmClient.class);
 
+
+	private String winrmDecrypt(GssCli gssCli,InputStream content) throws IOException {
+		logger.debug("Decrypting SOAP XML");
+		BufferedInputStream bfIs = new BufferedInputStream(content);
+		final Writer writer = new StringWriter();
+		final Reader reader = new InputStreamReader(bfIs, "UTF-8");
+		try {
+			int iovCount = 3;
+			GssIOVBufferDesc[] iov = new GssIOVBufferDesc[3];
+
+			iov[0] = new GssIOVBufferDesc();
+			iov[0].type = LibGss.GSS_IOV_BUFFER_TYPE_HEADER | LibGss.GSS_IOV_BUFFER_FLAG_ALLOCATE;
+			iov[1] = new GssIOVBufferDesc();
+			iov[1].type = LibGss.GSS_IOV_BUFFER_TYPE_DATA;
+
+			iov[2] = new GssIOVBufferDesc();
+			iov[2].type = LibGss.GSS_IOV_BUFFER_TYPE_DATA;
+
+			//Time to do some crazy payload extraction binary and string mixed ugh
+
+			int n;
+			//Seek to encrypted content
+			while((n = reader.read()) != -1) {
+				writer.write(n);
+				if(writer.toString().indexOf("Content-Type: application\\/octet-stream\\r\\n") > -1) {
+					break; //we have found the starting point of binary data
+				}
+			}
+
+			ByteArrayOutputStream encryptedPayload = new ByteArrayOutputStream(2048);
+
+			while((n = bfIs.read()) > -1) {
+				if(n == '-') {
+					bfIs.mark(12);
+					byte[] encryptMarker = new byte[11];
+					//Looking for closing tag --Encrypted
+					bfIs.read(encryptMarker, 0, 10);
+					if(new String(encryptMarker, "UTF-8").equals("-Encrypted")) { //we dont check for first dash since that was first read
+						break;
+					} else {
+						bfIs.reset(); //reset back to last position
+					}
+				}
+				encryptedPayload.write(n);
+			}
+
+			byte[] resultantPayload = encryptedPayload.toByteArray();
+			int len = getIntFromByteArray(resultantPayload);
+			iov[0].buffer.value = new Memory(len + 1);
+			iov[0].buffer.value.write(0, resultantPayload, 4, len);
+			iov[0].buffer.length = len;
+
+			iov[1].buffer.value = new Memory(resultantPayload.length - len - 4 + 1);
+			iov[1].buffer.length = resultantPayload.length - len - 4 + 1;
+			iov[1].buffer.value.write(0, resultantPayload, 4 + len, resultantPayload.length - len - 4 + 1);
+
+			Pointer confState = new Memory(GssCli.INT32_SIZE);
+			Pointer minStat = new Memory(GssCli.INT32_SIZE);
+			Pointer qopState = new Memory(GssCli.INT32_SIZE);
+			confState.setInt(0, 1);
+			qopState.setInt(0, 0);
+
+			int majStat;
+
+			majStat = LibGss.INSTANCE.gss_unwrap_iov(minStat, gssCli.getContext(), confState, qopState, iov, iovCount);
+			logger.debug("SOAP Message decrypted (MAJ: " + majStat + ", MIN: " + minStat.getInt(0) + "):\n" + iov[1].buffer.getValue());
+			return iov[1].buffer.getValue();
+		} finally {
+			closeQuietly(reader);
+		}
+	}
+
+	private int getIntFromByteArray(byte[] buff) throws IOException {
+		return (((int) buff[3]) & 0xFF) + ((((int) buff[2]) & 0xFF) << 8) + ((((int) buff[1]) & 0xFF) << 16) + ((((int) buff[0]) & 0xFF) << 24);
+	}
+
+//
+//	def winrm_decrypt(str)
+//	@logger.debug "Decrypting SOAP message:\n#{str}"
+//	iov_cnt = 3
+//	iov = FFI::MemoryPointer.new(GSSAPI::LibGSSAPI::GssIOVBufferDesc.size * iov_cnt)
+//
+//	iov0 = GSSAPI::LibGSSAPI::GssIOVBufferDesc.new(FFI::Pointer.new(iov.address))
+//	iov0[:type] = (GSSAPI::LibGSSAPI::GSS_IOV_BUFFER_TYPE_HEADER | \
+//	GSSAPI::LibGSSAPI::GSS_IOV_BUFFER_FLAG_ALLOCATE)
+//
+//	iov1 = GSSAPI::LibGSSAPI::GssIOVBufferDesc.new(
+//	FFI::Pointer.new(iov.address + (GSSAPI::LibGSSAPI::GssIOVBufferDesc.size * 1)))
+//	iov1[:type] = (GSSAPI::LibGSSAPI::GSS_IOV_BUFFER_TYPE_DATA)
+//
+//	iov2 = GSSAPI::LibGSSAPI::GssIOVBufferDesc.new(
+//	FFI::Pointer.new(iov.address + (GSSAPI::LibGSSAPI::GssIOVBufferDesc.size * 2)))
+//	iov2[:type] = (GSSAPI::LibGSSAPI::GSS_IOV_BUFFER_TYPE_DATA)
+//
+//			str.force_encoding('BINARY')
+//	str.sub!(/^.*Content-Type: application\/octet-stream\r\n(.*)--Encrypted.*$/m, '\1')
+//
+//	len = str.unpack('L').first
+//			iov_data = str.unpack("LA#{len}A*")
+//	iov0[:buffer].value = iov_data[1]
+//	iov1[:buffer].value = iov_data[2]
+//
+//	min_stat = FFI::MemoryPointer.new :uint32
+//			conf_state = FFI::MemoryPointer.new :uint32
+//	conf_state.write_int(1)
+//	qop_state = FFI::MemoryPointer.new :uint32
+//	qop_state.write_int(0)
+//
+//	maj_stat = GSSAPI::LibGSSAPI.gss_unwrap_iov(
+//	min_stat, @gsscli.context, conf_state, qop_state, iov, iov_cnt)
+//
+//	@logger.debug "SOAP message decrypted (MAJ: #{maj_stat}, " \
+//			"MIN: #{min_stat.read_int}):\n#{iov1[:buffer].value}"
+//
+//	iov1[:buffer].value
+//			end
 }

@@ -2,13 +2,14 @@ package com.xebialabs.overthere.util.gss;
 
 import com.sun.jna.Library;
 import com.sun.jna.Native;
+import com.sun.jna.Platform;
 import com.sun.jna.Pointer;
 
 /**
  * Created by davidestes on 4/14/16.
  */
 public interface LibGss extends Library {
-	LibGss INSTANCE = (LibGss) Native.loadLibrary("libgssapi_krb5.dylib", LibGss.class);
+	LibGss INSTANCE = (LibGss) Native.loadLibrary(Platform.isMac() ? "libgssapi_krb5.dylib" : (Platform.isLinux() ? "libgssapi_krb5.so.2" : "C:\\Program Files (x86)\\MIT\\Kerberos\\bin\\gssapi32.dll"), LibGss.class);
 	//// Remember to free the allocated name (gss_name_t) space with gss_release_name
 	int gss_import_name(Pointer minorStatus, Pointer inputName, GssOID oid, Pointer outputName);
 

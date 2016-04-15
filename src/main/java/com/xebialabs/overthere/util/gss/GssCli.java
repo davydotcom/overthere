@@ -1,9 +1,6 @@
 package com.xebialabs.overthere.util.gss;
 
-import com.sun.jna.Memory;
-import com.sun.jna.Native;
-import com.sun.jna.NativeLibrary;
-import com.sun.jna.Pointer;
+import com.sun.jna.*;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -11,7 +8,7 @@ import java.util.regex.Pattern;
 /**
  * Basic Wrapper for common GSS Functions
  * For more advanced interactions with the GSS API Use the {@link LibGss} JNA interface
- * Created by davidestes on 4/14/16.
+ * @author David Estes
  */
 
 public class GssCli {
@@ -47,29 +44,6 @@ public class GssCli {
 	}
 
 
-
-
-//	# Convert a String to a GSSAPI usable buffer (gss_buffer_desc)
-////	# @param [String] str the string to convert
-//	def import_name(str)
-//	buff_str = LibGSSAPI::UnManagedGssBufferDesc.new
-//	buff_str.value = str
-//	# Choose the appropriate mechanism based on the string passed.
-//	if (str =~ /[A-Za-z0-9]+\/[^@]+@.+$/)
-//	mech = LibGSSAPI::GssOID.gss_c_no_oid
-//	else
-//	mech = LibGSSAPI::GSS_C_NT_HOSTBASED_SERVICE
-//			end
-//	name = FFI::MemoryPointer.new :pointer # gss_name_t
-//			min_stat = FFI::MemoryPointer.new :OM_uint32
-//
-//			maj_stat = LibGSSAPI.gss_import_name(min_stat, buff_str.pointer, mech, name)
-//	raise GssApiError.new(maj_stat, min_stat), "gss_import_name did not return GSS_S_COMPLETE" if maj_stat != 0
-//
-//	LibGSSAPI::GssNameT.new(name.get_pointer(0))
-//	end
-//
-
 	public Pointer importName(String str) throws Exception {
 		GssBufferDesc buffer = new GssBufferDesc();
 		buffer.setValue(str);
@@ -79,7 +53,7 @@ public class GssCli {
 		if(m.matches()) {
 			mech = GssOID.noOid();
 		} else {
-			NativeLibrary libraryInstance = NativeLibrary.getInstance("libgssapi_krb5.dylib");
+			NativeLibrary libraryInstance = NativeLibrary.getInstance(Platform.isMac() ? "libgssapi_krb5.dylib" : (Platform.isLinux() ? "libgssapi_krb5.so.2" : "C:\\Program Files (x86)\\MIT\\Kerberos\\bin\\gssapi32.dll"));
 			Pointer GSS_C_NT_HOSTBASED_SERVICE  = libraryInstance.getGlobalVariableAddress("GSS_C_NT_HOSTBASED_SERVICE");
 			Pointer GSS_C_NT_EXPORT_NAME  = libraryInstance.getGlobalVariableAddress("GSS_C_NT_EXPORT_NAME");
 			mech = new GssOID(GSS_C_NT_HOSTBASED_SERVICE.getPointer(0));
@@ -142,10 +116,4 @@ public class GssCli {
 		return initContext(null,null,false);
 	}
 
-//	public static LibGss loadLibrary() {
-//
-//	}
-//	public static NativeLibrary loadNativeLibrary() {
-//
-//	}
 }

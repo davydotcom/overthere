@@ -23,7 +23,6 @@ public class KerberosStringEntity implements HttpEntity, GssTokenAware{
 	protected String contentType;
 	protected String content;
 	protected byte[] body;
-	private String token;
 	private GssCli gssCli;
 
 	public KerberosStringEntity(String content, String contentType) {
@@ -125,7 +124,7 @@ public class KerberosStringEntity implements HttpEntity, GssTokenAware{
 	@Override
 	public void initContext(HttpContext context, String token, String serviceName) {
 		this.body = null; //reset body since it now might be encrypted
-		this.token = token;
+
 		try {
 			if(gssCli == null) {
 				gssCli = new GssCli(serviceName, null);
