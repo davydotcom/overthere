@@ -45,29 +45,33 @@ public class KerberosStringEntity extends AbstractHttpEntity implements GssToken
 			return new byte[0];
 		}
 
-		if(gssCli != null) {
-			int originalLength = content.getBytes(charSet).length;
-			EncryptedMessage emsg = encryptMessage(content);
-			int totalLength= originalLength + emsg.padLength;
+		try {
+			if(gssCli != null) {
+				int originalLength = content.getBytes(charSet).length;
+				EncryptedMessage emsg = encryptMessage(content);
+				int totalLength = originalLength + emsg.padLength;
 
-			StringBuilder strBuilder = new StringBuilder(content.length());
-			strBuilder.append("--Encrypted Boundary\r\n");
-			strBuilder.append("Content-Type: application/HTTP-Kerberos-session-encrypted\r\n");
-			strBuilder.append("OriginalContent: type=application/soap+xml;charset=UTF-8;Length=" + totalLength + "\r\n");
-			strBuilder.append("--Encrypted Boundary\r\n");
-			strBuilder.append("Content-Type: application/octet-stream\r\n");
-			ByteArrayOutputStream buffer = new ByteArrayOutputStream(totalLength);
-			try {
-				buffer.write(strBuilder.toString().getBytes(charSet));
-				buffer.write(emsg.message);
-				buffer.write("--Encrypted Boundary--\r\n".getBytes(charSet));
-			} catch(IOException ex) {
-				//also not going to happen.
+				StringBuilder strBuilder = new StringBuilder(content.length());
+				strBuilder.append("--Encrypted Boundary\r\n");
+				strBuilder.append("Content-Type: application/HTTP-Kerberos-session-encrypted\r\n");
+				strBuilder.append("OriginalContent: type=application/soap+xml;charset=UTF-8;Length=" + totalLength + "\r\n");
+				strBuilder.append("--Encrypted Boundary\r\n");
+				strBuilder.append("Content-Type: application/octet-stream\r\n");
+				ByteArrayOutputStream buffer = new ByteArrayOutputStream(totalLength);
+				try {
+					buffer.write(strBuilder.toString().getBytes(charSet));
+					buffer.write(emsg.message);
+					buffer.write("--Encrypted Boundary--\r\n".getBytes(charSet));
+				} catch(IOException ex) {
+					//also not going to happen.
+				}
+
+				body = buffer.toByteArray();
+			} else {
+				body = content.getBytes(charSet);
 			}
-
-			body = buffer.toByteArray();
-		} else {
-			body = content.getBytes(charSet);
+		}catch (final UnsupportedEncodingException ex) {
+			// should never happen
 		}
 		logger.debug("Sending Request SOAP Body: " + new String(body));
 		return body;
