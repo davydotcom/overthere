@@ -7,10 +7,12 @@ import com.xebialabs.overthere.util.gss.GssIOVBufferDesc;
 import com.xebialabs.overthere.util.gss.LibGss;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +23,8 @@ import java.nio.ByteBuffer;
  *
  * @author David Estes
  */
-public class KerberosStringEntity extends AbstractHttpEntity implements GssTokenAware{
+@NotThreadSafe
+public class KerberosStringEntity extends AbstractHttpEntity implements GssTokenAware, Cloneable{
 
 	protected String content;
 	protected byte[] body;
@@ -109,12 +112,8 @@ public class KerberosStringEntity extends AbstractHttpEntity implements GssToken
 
 	@Override
 	public void writeTo(OutputStream outstream) throws IOException {
-		byte[] buff = new byte[1024];
-		int c = 0;
-		InputStream is = getContent();
-		while((c = is.read(buff)) != -1) {
-			outstream.write(buff,0,c);
-		}
+		Args.notNull(outstream, "Output stream");
+		outstream.write(this.getBody());
 		outstream.flush();
 	}
 
@@ -123,9 +122,6 @@ public class KerberosStringEntity extends AbstractHttpEntity implements GssToken
 		return false;
 	}
 
-	@Override
-	public void consumeContent() throws IOException {
-	}
 
 	@Override
 	public void initContext(HttpContext context, String token, String serviceName) {
@@ -188,6 +184,11 @@ public class KerberosStringEntity extends AbstractHttpEntity implements GssToken
 			this.padLength = padLength;
 			this.message = message;
 		}
+	}
+
+	@Override
+	public Object clone() throws CloneNotSupportedException {
+		return super.clone();
 	}
 
 	private static Logger logger = LoggerFactory.getLogger(KerberosStringEntity.class);
