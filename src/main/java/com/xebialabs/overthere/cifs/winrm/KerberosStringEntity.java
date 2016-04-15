@@ -10,6 +10,8 @@ import org.apache.http.HttpEntity;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -132,8 +134,7 @@ public class KerberosStringEntity implements HttpEntity, GssTokenAware{
 			gssCli.initContext(token,null,true);
 			context.setAttribute("gssCli", gssCli);
 		} catch(Exception ex) {
-			//do something here if it fails probably
-			ex.printStackTrace(); // temporary for testing
+			logger.error("Error Initializing Native LibGss Cli Context (Encryption not supported): " + ex.getMessage(),ex);
 		}
 	}
 
@@ -182,4 +183,7 @@ public class KerberosStringEntity implements HttpEntity, GssTokenAware{
 			this.message = message;
 		}
 	}
+
+	private static Logger logger = LoggerFactory.getLogger(KerberosStringEntity.class);
+
 }
