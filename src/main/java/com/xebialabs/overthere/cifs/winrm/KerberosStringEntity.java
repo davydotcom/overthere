@@ -91,12 +91,12 @@ public class KerberosStringEntity implements HttpEntity, GssTokenAware{
 		if(gssCli != null) {
 			new BasicHeader("Content-Type","multipart/encrypted;protocol=\"application/HTTP-Kerberos-session-encrypted\";boundary=\"Encrypted Boundary\"");
 		}
-		return new BasicHeader("Content-Type", contentType);
+		return new BasicHeader("Content-Type", contentType + ";charset=UTF-8");
 	}
 
 	@Override
 	public Header getContentEncoding() {
-		return new BasicHeader("Content-Type","charset=" + HTTP.DEF_CONTENT_CHARSET);
+		return null;
 	}
 
 	@Override
