@@ -70,7 +70,7 @@ public class GssCli {
 		majStat = LibGss.INSTANCE.gss_import_name(minStat, buffer.getPointer(), mech, name);
 
 		if(majStat != 0) {
-			throw new Exception("gss_import_name did not return GSS_S_COMPLETE");
+			throw new Exception("gss_import_name did not return GSS_S_COMPLETE - " + LibGss.GSS_C_ROUTINE_ERRORS.get(majStat));
 		}
 		return name.getPointer(0);
 	}

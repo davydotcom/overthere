@@ -5,6 +5,8 @@ import com.sun.jna.Native;
 import com.sun.jna.Platform;
 import com.sun.jna.Pointer;
 
+import java.util.HashMap;
+
 /**
  * Created by davidestes on 4/14/16.
  */
@@ -169,6 +171,28 @@ public interface LibGss extends Library {
 //				(18 << GSS_C_ROUTINE_ERROR_OFFSET) => "GSS_S_NAME_NOT_MN"
 //	}
 //
+
+	HashMap<Integer, String> GSS_C_ROUTINE_ERRORS = new HashMap<Integer,String>() {{
+		put(1 << GSS_C_ROUTINE_ERROR_OFFSET, "GSS_S_BAD_MECH");
+		put(2 << GSS_C_ROUTINE_ERROR_OFFSET, "GSS_S_BAD_NAME");
+		put(3 << GSS_C_ROUTINE_ERROR_OFFSET, "GSS_S_BAD_NAMETYPE");
+		put(4 << GSS_C_ROUTINE_ERROR_OFFSET, "GSS_S_BAD_BINDINGS");
+		put(5 << GSS_C_ROUTINE_ERROR_OFFSET, "GSS_S_BAD_STATUS");
+		put(6 << GSS_C_ROUTINE_ERROR_OFFSET, "GSS_S_BAD_BAD_SIG");
+		put(7 << GSS_C_ROUTINE_ERROR_OFFSET, "GSS_S_NO_CRED");
+		put(8 << GSS_C_ROUTINE_ERROR_OFFSET, "GSS_S_NO_CONTEXT");
+		put(9 << GSS_C_ROUTINE_ERROR_OFFSET, "GSS_S_DEFECIVE_TOKEN");
+		put(10 << GSS_C_ROUTINE_ERROR_OFFSET, "GSS_S_DEFECTIVE_CREDENTIAL");
+		put(11 << GSS_C_ROUTINE_ERROR_OFFSET, "GSS_S_CREDENTIALS_EXPIRED");
+		put(12 << GSS_C_ROUTINE_ERROR_OFFSET, "GSS_S_CONTEXT_EXPIRED");
+		put(13 << GSS_C_ROUTINE_ERROR_OFFSET, "GSS_S_FAILURE");
+		put(14 << GSS_C_ROUTINE_ERROR_OFFSET, "GSS_S_BAD_QOP");
+		put(15 << GSS_C_ROUTINE_ERROR_OFFSET, "GSS_S_UNAUTHORIZED");
+		put(16 << GSS_C_ROUTINE_ERROR_OFFSET, "GSS_S_UNAVAILABLE");
+		put(17 << GSS_C_ROUTINE_ERROR_OFFSET, "GSS_S_DUPLICATE_ELEMENT");
+		put(18 << GSS_C_ROUTINE_ERROR_OFFSET, "GSS_S_NAME_NOT_NM");
+	}};
+
 
 
 	// IOV Buffer Types (gssapi_ext.h)
