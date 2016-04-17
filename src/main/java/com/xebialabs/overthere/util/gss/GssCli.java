@@ -77,6 +77,7 @@ public class GssCli {
 
 	public byte[] initContext(byte[] inputToken, Integer flags, boolean delegate) {
 		minStat = new Memory(INT32_SIZE); //32bit int
+		minStat.setInt(0,0);
 		Pointer pctx = new Memory(Pointer.SIZE);
 
 
