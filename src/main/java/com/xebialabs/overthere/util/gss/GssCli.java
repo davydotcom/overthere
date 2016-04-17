@@ -79,7 +79,8 @@ public class GssCli {
 		minStat = new Memory(INT32_SIZE); //32bit int
 		minStat.setInt(0,0);
 		if(context != null) {
-			deleteContext();
+//			deleteContext();
+			context =null;	
 		}
 		context = new Memory(Pointer.SIZE);
 		GssBufferDesc inTok = new GssBufferDesc();
