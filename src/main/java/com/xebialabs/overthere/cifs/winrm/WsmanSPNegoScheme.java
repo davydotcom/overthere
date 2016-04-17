@@ -90,6 +90,7 @@ class WsmanSPNegoScheme extends SPNegoScheme {
 
         final GSSCredential gssCredential;
         if (credentials instanceof KerberosCredentials) {
+
             gssCredential = ((KerberosCredentials) credentials).getGSSCredential();
         } else {
             gssCredential = null;

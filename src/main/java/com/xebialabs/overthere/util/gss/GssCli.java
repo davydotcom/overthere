@@ -46,6 +46,20 @@ public class GssCli {
 		return context;
 	}
 
+	public Pointer acquireCredentials(String principalName) {
+		Pointer credName = importName(credName);
+		minStat = new Memory(INT32_SIZE); //32bit int
+		Pointer name = new Memory(Native.POINTER_SIZE);
+
+		Pointer credHandle = new Memory(Native.POINTER_SIZE);
+		int majStat = LibGss.INSTANCE.gss_acquire_cred(minStat, credName,0,null,LibGss.GSS_C_INITIATE,credHandle,null,null);
+		if(majStat != 0) {
+			throw new Exception("gss_import_name did not return GSS_S_COMPLETE - " + LibGss.GSS_C_ROUTINE_ERRORS.get(majStat));
+		}
+
+		return credHandle.getPointer(0);
+	}
+
 
 	public Pointer importName(String str) throws Exception {
 		GssBufferDesc buffer = new GssBufferDesc();
@@ -99,6 +113,10 @@ public class GssCli {
 			throw new Exception("gss_import_context did not return GSS_S_COMPLETE - " + majStat + " - " + LibGss.GSS_C_ROUTINE_ERRORS.get(majStat));
 
 		}
+	}
+
+	public Pointer acquireCredentialHandle(String principalName) {
+
 	}
 
 	public void finalize() {

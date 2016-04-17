@@ -66,6 +66,7 @@ public interface LibGss extends Library {
 	// int gss_acquire_cred(int *minor_status, const gss_name_t desired_name, int time_req, const gss_OID_set desired_mechs,
 	//   gss_cred_usage_t cred_usage, gss_cred_id_t *output_cred_handle, gss_OID_set *actual_mechs, int *time_rec);
 	//attach_function :gss_acquire_cred, [Pointer, Pointer, :int, Pointer, :int, Pointer, Pointer, Pointer], :int
+	int gss_acquire_cred(Pointer minorStatus, Pointer desired_name,int time_req, Pointer desired_mech,int cred_usage, Pointer output_cred_handle, Pointer actual_mechs, Pointer timeRec);
 
 	// int  gss_wrap(int  *  minor_status, const gss_ctx_id_t context_handle, int conf_req_flag,
 	//   gss_qop_t qop_req, const gss_buffer_t input_message_buffer, int * conf_state, gss_buffer_t output_message_buffer);
