@@ -106,6 +106,7 @@ class WsmanSPNegoScheme extends SPNegoScheme {
         gssContext.requestCredDeleg(true);
 		this.token = gssContext.initSecContext(token, 0, token.length);
 		this.spn = spn;
+	   logger.debug("Is the context transferable - " + gssContext.isTransferable());
 	   	this.exportedContext = gssContext.export();
 	   logger.debug("Got export context: "+ this.exportedContext);
         return this.token;
