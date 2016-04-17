@@ -46,13 +46,15 @@ public class GssCli {
 		return context;
 	}
 
-	public Pointer acquireCredentials(String principalName) throws Exception {
-		Pointer credName = importName(principalName,true);
+	public Pointer acquireCredentials(Pointer principalName) throws Exception {
+		if(principalName == null) {
+			principalName = this.intSvcName;
+		}
+//		Pointer credName = importName(principalName,true);
 		minStat = new Memory(INT32_SIZE); //32bit int
-		Pointer name = new Memory(Native.POINTER_SIZE);
 
 		Pointer credHandle = new Memory(Native.POINTER_SIZE);
-		int majStat = LibGss.INSTANCE.gss_acquire_cred(minStat, credName,0,null,LibGss.GSS_C_INITIATE,credHandle,null,null);
+		int majStat = LibGss.INSTANCE.gss_acquire_cred(minStat, principalName,0,null,LibGss.GSS_C_INITIATE,credHandle,null,null);
 		if(majStat != 0) {
 			throw new Exception("gss_import_name did not return GSS_S_COMPLETE - " + LibGss.GSS_C_ROUTINE_ERRORS.get(majStat));
 		}
