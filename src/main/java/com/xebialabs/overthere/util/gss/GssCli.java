@@ -67,7 +67,7 @@ public class GssCli {
 		minStat = new Memory(INT32_SIZE); //32bit int
 		Pointer name = new Memory(Native.POINTER_SIZE);
 		logger.debug("Calling native import name");
-		majStat = LibGss.INSTANCE.gss_import_name(minStat, buffer.getPointer(), mech, name);
+		majStat = LibGss.INSTANCE.gss_import_name(minStat, buffer, mech, name);
 
 		if(majStat != 0) {
 			throw new Exception("gss_import_name did not return GSS_S_COMPLETE - " + LibGss.GSS_C_ROUTINE_ERRORS.get(majStat));

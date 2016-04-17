@@ -13,7 +13,7 @@ import java.util.HashMap;
 public interface LibGss extends Library {
 	LibGss INSTANCE = (LibGss) Native.loadLibrary(Platform.isMac() ? "libgssapi_krb5.dylib" : (Platform.isLinux() ? "libgssapi_krb5.so.2" : "C:\\Program Files (x86)\\MIT\\Kerberos\\bin\\gssapi32.dll"), LibGss.class);
 	//// Remember to free the allocated name (gss_name_t) space with gss_release_name
-	int gss_import_name(Pointer minorStatus, Pointer inputName, Pointer oid, Pointer outputName);
+	int gss_import_name(Pointer minorStatus, GssBufferDesc inputName, Pointer oid, Pointer outputName);
 
 	//int gss_export_name(int * minor_status, const gss_name_t input_name, gss_buffer_t exported_name);
 	int gss_export_name(Pointer minorStatus, Pointer inputName, Pointer exportedName);
