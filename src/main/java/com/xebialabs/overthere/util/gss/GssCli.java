@@ -114,12 +114,10 @@ public class GssCli {
 
 		}
 	}
-
-	public Pointer acquireCredentialHandle(String principalName) {
-
-	}
+	
 
 	public void finalize() {
+		super.finalize()
 		if(context != null) {
 			deleteContext();
 		}
