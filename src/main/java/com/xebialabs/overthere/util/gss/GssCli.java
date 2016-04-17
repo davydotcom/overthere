@@ -47,7 +47,7 @@ public class GssCli {
 	}
 
 	public Pointer acquireCredentials(String principalName) {
-		Pointer credName = importName(credName);
+		Pointer credName = importName(principalName);
 		minStat = new Memory(INT32_SIZE); //32bit int
 		Pointer name = new Memory(Native.POINTER_SIZE);
 
