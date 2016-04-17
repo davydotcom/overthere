@@ -49,6 +49,7 @@ class WsmanSPNegoScheme extends SPNegoScheme {
 	private byte[] token;
 	private byte[] exportedContext;
 	private String spn;
+	private GssCli gssCli;
     private final int spnPort;
 
     public WsmanSPNegoScheme(final boolean stripPort, final String spnServiceClass, final String spnAddress, final int spnPort) {
@@ -96,34 +97,39 @@ class WsmanSPNegoScheme extends SPNegoScheme {
             gssCredential = null;
         }
 
-        logger.debug("Canonicalizing SPN {}", spn);
-        GSSManager manager = getManager();
-        GSSName serverName = manager.createName(spn, GSSName.NT_HOSTBASED_SERVICE);
-        GSSName canonicalizedName = serverName.canonicalize(oid);
+	   try {
+		   gssCli = new GssCli(spn,null);
+		   this.token = gssCli.initContext(token,null,true);
+	   } catch(Exception ex) {
+		   gssCli = null;
+		   logger.error("Error initializing native gssCli library - " + ex.getMessage(),ex);
+	   }
 
-        logger.debug("Requesting SPNego ticket for canonicalized SPN {}", canonicalizedName);
-        GSSContext gssContext = manager.createContext(canonicalizedName, oid, gssCredential, JavaVendor.getSpnegoLifetime());
-        gssContext.requestMutualAuth(true);
-        gssContext.requestCredDeleg(true);
-		this.token = gssContext.initSecContext(token, 0, token.length);
-		this.spn = spn;
-	   logger.debug("Is the context transferable - " + gssContext.isTransferable());
-	   	this.exportedContext = gssContext.export();
-	   logger.debug("Got export context: "+ this.exportedContext);
+		if(gssCli == null) {
+			logger.debug("Canonicalizing SPN {}", spn);
+			GSSManager manager = getManager();
+			GSSName serverName = manager.createName(spn, GSSName.NT_HOSTBASED_SERVICE);
+			GSSName canonicalizedName = serverName.canonicalize(oid);
+
+			logger.debug("Requesting SPNego ticket for canonicalized SPN {}", canonicalizedName);
+			GSSContext gssContext = manager.createContext(canonicalizedName, oid, gssCredential, JavaVendor.getSpnegoLifetime());
+			gssContext.requestMutualAuth(true);
+			gssContext.requestCredDeleg(true);
+			this.token = gssContext.initSecContext(token, 0, token.length);
+			this.spn = spn;
+			logger.debug("Is the context transferable - " + gssContext.isTransferable());
+			this.exportedContext = gssContext.export();
+			logger.debug("Got export context: "+ this.exportedContext);
+		}
+
         return this.token;
     }
 
 	@Override
 	public Header authenticate(Credentials credentials, HttpRequest request, HttpContext context) throws AuthenticationException {
 		Header hdr = super.authenticate(credentials,request,context);
-		if(token != null) {
-			try {
-				GssCli gssCli = new GssCli(spn,null);
-				gssCli.importContext(this.exportedContext);
-				context.setAttribute("gssCli",gssCli);
-			} catch(Exception ex) {
-				logger.error("Error initializing native gssCli library - " + ex.getMessage(),ex);
-			}
+		if(gssCli != null) {
+			context.setAttribute("gssCli",gssCli);
 		}
 		return hdr;
 	}
