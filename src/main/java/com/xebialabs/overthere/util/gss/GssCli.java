@@ -80,7 +80,7 @@ public class GssCli {
 		minStat.setInt(0,0);
 		if(context != null) {
 //			deleteContext();
-			context =null;	
+			context =null;
 		}
 		context = new Memory(Pointer.SIZE);
 		GssBufferDesc inTok = new GssBufferDesc();

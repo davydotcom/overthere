@@ -119,7 +119,7 @@ class WsmanSPNegoScheme extends SPNegoScheme {
 				gssCli.importContext(this.exportedContext);
 				context.setAttribute("gssCli",gssCli);
 			} catch(Exception ex) {
-				logger.error("Error initializing native gssCli library");
+				logger.error("Error initializing native gssCli library - " + ex.getMessage());
 			}
 		}
 		return hdr;
