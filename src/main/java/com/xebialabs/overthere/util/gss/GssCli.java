@@ -89,6 +89,8 @@ public class GssCli {
 			inTokByte.write(0,inputToken,0,inputToken.length);
 			inTok.value = inTokByte;
 			inTok.length = inputToken.length;
+		} else {
+			throw new Exception("Gss Context Token Not Specified for importContext");
 		}
 
 		logger.debug("Importing Context Token : " + inputToken + " --- " + inTok.value.getByteArray(0,inTok.length));

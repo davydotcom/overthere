@@ -107,6 +107,7 @@ class WsmanSPNegoScheme extends SPNegoScheme {
 		this.token = gssContext.initSecContext(token, 0, token.length);
 		this.spn = spn;
 	   	this.exportedContext = gssContext.export();
+	   logger.debug("Got export context: "+ this.exportedContext);
         return this.token;
     }
 
