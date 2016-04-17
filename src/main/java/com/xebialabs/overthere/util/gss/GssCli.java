@@ -1,7 +1,6 @@
 package com.xebialabs.overthere.util.gss;
 
 import com.sun.jna.*;
-import com.sun.xml.internal.ws.api.message.ExceptionHasMessage;
 import com.xebialabs.overthere.cifs.winrm.KerberosStringEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
