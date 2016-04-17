@@ -114,10 +114,10 @@ public class GssCli {
 
 		}
 	}
-	
+
 
 	public void finalize() {
-		super.finalize()
+		super.finalize();
 		if(context != null) {
 			deleteContext();
 		}
