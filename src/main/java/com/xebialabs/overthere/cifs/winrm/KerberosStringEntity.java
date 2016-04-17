@@ -148,18 +148,6 @@ public class KerberosStringEntity extends StringEntity implements Cloneable{
 			this.body = null; //reset body since it now might be encrypted
 		}
 
-
-//		try {
-//			if(gssCli == null) {
-//				gssCli = new GssCli(serviceName, null);
-//			}
-//			logger.debug("Received Token: " + token);
-//			byte[] outToken = gssCli.initContext(token,null,true);
-//			logger.debug("Lib Gss Output Token: " + outToken);
-//			context.setAttribute("gssCli", gssCli);
-//		} catch(Exception ex) {
-//			logger.error("Error Initializing Native LibGss Cli Context (Encryption not supported): " + ex.getMessage(),ex);
-//		}
 	}
 
 	public EncryptedMessage encryptMessage(String content) {
@@ -178,8 +166,10 @@ public class KerberosStringEntity extends StringEntity implements Cloneable{
 		Pointer confState = new Memory(GssCli.INT32_SIZE);
 		Pointer minStat = new Memory(GssCli.INT32_SIZE);
 		logger.debug("Calling gss wrap library");
-		LibGss.INSTANCE.gss_wrap_iov(minStat, gssCli.getContext(),1,LibGss.GSS_C_QOP_DEFAULT,confState,iov,iovCount);
-		logger.debug("Got response from wrap");
+		int majStat = LibGss.INSTANCE.gss_wrap_iov(minStat, gssCli.getContext(),1,LibGss.GSS_C_QOP_DEFAULT,confState,iov,iovCount);
+		if(majStat != 0) {
+			throw new Exception("gss_import_context did not return GSS_S_COMPLETE - " + LibGss.GSS_C_ROUTINE_ERRORS.get(majStat) " - Minor : " + minStat.getInt(0));
+		}
 		ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
 		ByteBuffer intLen = ByteBuffer.allocate(4);
 		intLen.putInt(iov[0].buffer.length);
@@ -191,6 +181,7 @@ public class KerberosStringEntity extends StringEntity implements Cloneable{
 			if(padLength > 0) {
 				byteBuffer.write(iov[2].buffer.value.getByteArray(0, iov[2].buffer.length));
 			}
+			logger.debug("Returning Encrypted Message: - " byteBuffer.toByteArray());
 			return new EncryptedMessage(padLength, byteBuffer.toByteArray());
 		} catch(IOException ex) {
 			//not gonna happen

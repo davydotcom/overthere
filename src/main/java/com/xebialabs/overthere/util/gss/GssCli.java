@@ -1,6 +1,7 @@
 package com.xebialabs.overthere.util.gss;
 
 import com.sun.jna.*;
+import com.sun.xml.internal.ws.api.message.ExceptionHasMessage;
 import com.xebialabs.overthere.cifs.winrm.KerberosStringEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,12 +76,11 @@ public class GssCli {
 		return name.getPointer(0);
 	}
 
-	public void importContext(byte[] inputToken) {
+	public void importContext(byte[] inputToken) throws Exception {
 		minStat = new Memory(INT32_SIZE); //32bit int
 		minStat.setInt(0,0);
 		if(context != null) {
-			//TODO RELEASE CONTEXT
-			context = null;
+			deleteContext();
 		}
 		context = new Memory(Pointer.SIZE);
 		GssBufferDesc inTok = new GssBufferDesc();
@@ -92,17 +92,30 @@ public class GssCli {
 		}
 
 		majStat = LibGss.INSTANCE.gss_import_sec_context(minStat, inTok, context);
-		if(majStat == 1) {
-			logger.debug("Native gss ImportContext majState = 1 ");
+		if(majStat != 0) {
+			throw new Exception("gss_import_context did not return GSS_S_COMPLETE - " + LibGss.GSS_C_ROUTINE_ERRORS.get(majStat));
+
 		}
-		logger.debug("Not resultant token - " + LibGss.GSS_C_ROUTINE_ERRORS.get(majStat) + " - Minor: "  + Integer.toHexString(minStat.getInt(0)));
+	}
+
+	public void finalize() {
+		if(context != null) {
+			deleteContext();
+		}
+	}
+
+
+	public byte[] deleteContext() {
+		GssBufferDesc outTok = new GssBufferDesc();
+		majStat = LibGss.INSTANCE.gss_delete_sec_context(minStat,context, outTok);
+		context = null;
+		return outTok.value.getByteArray(0,outTok.length);
 	}
 
 	public byte[] initContext(byte[] inputToken, Integer flags, boolean delegate) {
 
 		if(context != null) {
-			//TODO RELEASE CONTEXT
-			context = null;
+			deleteContext();
 		}
 		context = new Memory(Pointer.SIZE);
 

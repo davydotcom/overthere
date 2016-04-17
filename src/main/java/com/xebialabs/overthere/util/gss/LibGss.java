@@ -35,10 +35,30 @@ public interface LibGss extends Library {
 
 	/**
 	 * Import a security context from another process using a byte stream
- 	 * @param interprocess_token
+ 	 * @param interprocessToken - the exported token for interprocess work
 	 * @return
 	 */
 	int gss_import_sec_context(Pointer minorStatus, GssBufferDesc interprocessToken, Pointer context_handle);
+
+	/**
+	 * Used for exporting a context to another process for use for things like message wrapping
+	 * @param minorStatus
+	 * @param contextHandle
+	 * @param interprocessToken
+	 * @return
+	 */
+	int gss_export_sec_context(Pointer minorStatus, Pointer contextHandle, GssBufferDesc interprocessToken);
+
+
+	/**
+	 * Should be called to release the context after use is complete
+	 * @param minorStatus
+	 * @param contextHandle
+	 * @param output_token
+	 * @return
+	 */
+	int gss_delete_sec_context(Pointer minorStatus, Pointer contextHandle, GssBufferDesc output_token);
+
 
 	// int gss_display_name(int * minor_status, gss_name_t input_name, gss_buffer_t output_name_buffer, gss_OID * output_name_type);
 	int gss_display_name(Pointer minorStatus, Pointer inputName, Pointer outputNameBuffer, Pointer outputNameType);
@@ -64,8 +84,7 @@ public interface LibGss extends Library {
 	// int gss_get_mic(int * minor_status, const gss_ctx_id_t context_handle, gss_qop_t qop_req, const gss_buffer_t input_message_buffer, gss_buffer_t output_message_buffer)
 	//attach_function :gss_get_mic, [Pointer, Pointer, :int, Pointer, Pointer], :int
 
-	// int gss_delete_sec_context(int * minor_status, gss_ctx_id_t * context_handle, gss_buffer_t output_token);
-	int gss_delete_sec_context(Pointer minorStatus, Pointer contextHandle, Pointer outputToken);
+
 
 	// int gss_release_name(int * minor_status, gss_name_t * name);
 	int gss_release_name(Pointer minorStatus, Pointer name);
