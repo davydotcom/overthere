@@ -78,7 +78,7 @@ public class GssCli {
 	public void importContext(byte[] inputToken) {
 		minStat = new Memory(INT32_SIZE); //32bit int
 		minStat.setInt(0,0);
-		if(context) {
+		if(context != null) {
 			//TODO RELEASE CONTEXT
 			context = null;
 		}
@@ -100,7 +100,7 @@ public class GssCli {
 
 	public byte[] initContext(byte[] inputToken, Integer flags, boolean delegate) {
 
-		if(context) {
+		if(context != null) {
 			//TODO RELEASE CONTEXT
 			context = null;
 		}
