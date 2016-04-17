@@ -46,7 +46,7 @@ public class GssCli {
 		return context;
 	}
 
-	public Pointer acquireCredentials(String principalName) {
+	public Pointer acquireCredentials(String principalName) throws Exception {
 		Pointer credName = importName(principalName);
 		minStat = new Memory(INT32_SIZE); //32bit int
 		Pointer name = new Memory(Native.POINTER_SIZE);
