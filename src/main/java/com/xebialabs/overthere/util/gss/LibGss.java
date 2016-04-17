@@ -33,6 +33,13 @@ public interface LibGss extends Library {
 	//   gss_buffer_t output_token, int *ret_flags, int *time_rec, gss_cred_id_t *delegated_cred_handle);
 	int gss_accept_sec_context(Pointer minorStatus, Pointer contextHandle, Pointer acceptorCredHandle, Pointer inputTokenBuffer, Pointer inputChanBindings, Pointer srcName, Pointer mechType, Pointer outputToken, Pointer retFlags, Pointer timeRec, Pointer delegatedCredHandle);
 
+	/**
+	 * Import a security context from another process using a byte stream
+ 	 * @param interprocess_token
+	 * @return
+	 */
+	int gss_import_sec_context(Pointer minorStatus, GssBufferDesc interprocessToken, Pointer context_handle);
+
 	// int gss_display_name(int * minor_status, gss_name_t input_name, gss_buffer_t output_name_buffer, gss_OID * output_name_type);
 	int gss_display_name(Pointer minorStatus, Pointer inputName, Pointer outputNameBuffer, Pointer outputNameType);
 

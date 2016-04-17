@@ -75,16 +75,41 @@ public class GssCli {
 		return name.getPointer(0);
 	}
 
-	public byte[] initContext(byte[] inputToken, Integer flags, boolean delegate) {
+	public void importContext(byte[] inputToken) {
 		minStat = new Memory(INT32_SIZE); //32bit int
 		minStat.setInt(0,0);
-		Pointer pctx = new Memory(Pointer.SIZE);
+		if(context) {
+			//TODO RELEASE CONTEXT
+			context = null;
+		}
+		context = new Memory(Pointer.SIZE);
+		GssBufferDesc inTok = new GssBufferDesc();
+		if(inputToken != null) {
+			Pointer inTokByte = new Memory(inputToken.length+1);
+			inTokByte.write(0,inputToken,0,inputToken.length);
+			inTok.value = inTokByte;
+			inTok.length = inputToken.length;
+		}
 
+		majStat = LibGss.INSTANCE.gss_import_sec_context(minStat, inTok, context);
+		if(majStat == 1) {
+			logger.debug("Native gss ImportContext majState = 1 ");
+		}
+		logger.debug("Not resultant token - " + LibGss.GSS_C_ROUTINE_ERRORS.get(majStat) + " - Minor: "  + Integer.toHexString(minStat.getInt(0)));
+	}
+
+	public byte[] initContext(byte[] inputToken, Integer flags, boolean delegate) {
+
+		if(context) {
+			//TODO RELEASE CONTEXT
+			context = null;
+		}
+		context = new Memory(Pointer.SIZE);
 
 		if(context == null)
-			pctx.setPointer(0, LibGss.GSS_C_NO_CONTEXT);
+			context.setPointer(0, LibGss.GSS_C_NO_CONTEXT);
 		else {
-			pctx.setPointer(0,context);
+			context.setPointer(0,context);
 		}
 
 
@@ -109,7 +134,7 @@ public class GssCli {
 		GssBufferDesc outTok = new GssBufferDesc();
 
 		Pointer returnFlags = new Memory(INT32_SIZE);
-		majStat = LibGss.INSTANCE.gss_init_sec_context(minStat, null, pctx, intSvcName, mech, flags, 0 ,null, inTok, null, outTok, returnFlags, null);
+		majStat = LibGss.INSTANCE.gss_init_sec_context(minStat, null, context, intSvcName, mech, flags, 0 ,null, inTok, null, outTok, returnFlags, null);
 		if(majStat == 1) {
 			logger.debug("Native gss InitContext majState = 1 - " + (outTok.length > 0 ? outTok.value.getByteArray(0,outTok.length) : null));
 			return outTok.length > 0 ? outTok.value.getByteArray(0,outTok.length) : null;

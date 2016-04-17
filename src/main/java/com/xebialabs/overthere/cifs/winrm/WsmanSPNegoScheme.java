@@ -47,6 +47,7 @@ class WsmanSPNegoScheme extends SPNegoScheme {
 
     private final String spnAddress;
 	private byte[] token;
+	private byte[] exportedContext;
 	private String spn;
     private final int spnPort;
 
@@ -105,6 +106,7 @@ class WsmanSPNegoScheme extends SPNegoScheme {
         gssContext.requestCredDeleg(true);
 		this.token = gssContext.initSecContext(token, 0, token.length);
 		this.spn = spn;
+	   	this.exportedContext = gssContext.export();
         return this.token;
     }
 
@@ -114,7 +116,7 @@ class WsmanSPNegoScheme extends SPNegoScheme {
 		if(token != null) {
 			try {
 				GssCli gssCli = new GssCli(spn,null);
-				gssCli.initContext(token,null,true);
+				gssCli.importContext(this.exportedContext);
 				context.setAttribute("gssCli",gssCli);
 			} catch(Exception ex) {
 				logger.error("Error initializing native gssCli library");
