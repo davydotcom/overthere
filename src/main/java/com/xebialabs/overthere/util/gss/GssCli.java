@@ -116,12 +116,12 @@ public class GssCli {
 	}
 
 
-	public void finalize() {
-		super.finalize();
-		if(context != null) {
-			deleteContext();
-		}
-	}
+//	public void finalize() {
+//		super.finalize();
+//		if(context != null) {
+//			deleteContext();
+//		}
+//	}
 
 
 	public byte[] deleteContext() {
