@@ -113,7 +113,7 @@ public class GssCli {
 			logger.debug("Native gss InitContext majState = 1 - " + (outTok.length > 0 ? outTok.value.getByteArray(0,outTok.length) : null));
 			return outTok.length > 0 ? outTok.value.getByteArray(0,outTok.length) : null;
 		}
-		logger.debug("Not resultant token - " + LibGss.GSS_C_ROUTINE_ERRORS.get(majStat));
+		logger.debug("Not resultant token - " + LibGss.GSS_C_ROUTINE_ERRORS.get(majStat) + " - Minor: "  + Integer.toHexString(minStat.getInt(0)));
 		return null;
 	}
 
