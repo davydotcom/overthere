@@ -47,7 +47,7 @@ public class GssCli {
 	}
 
 	public Pointer acquireCredentials(String principalName) throws Exception {
-		Pointer credName = importName(principalName);
+		Pointer credName = importName(principalName,true);
 		minStat = new Memory(INT32_SIZE); //32bit int
 		Pointer name = new Memory(Native.POINTER_SIZE);
 
@@ -61,14 +61,14 @@ public class GssCli {
 	}
 
 
-	public Pointer importName(String str) throws Exception {
+	public Pointer importName(String str, boolean noid) throws Exception {
 		GssBufferDesc buffer = new GssBufferDesc();
 		buffer.setValue(str);
 		Pattern p = Pattern.compile("[A-Za-z0-9]+/[^@]+@.+$");
 		Matcher m = p.matcher(str);
 		Pointer mech;
 		logger.debug("Gss Import Name " + str);
-		if(m.matches()) {
+		if(m.matches() || noid == true) {
 			mech = Pointer.NULL;
 		} else {
 			logger.debug("This is an NT_HOSTBASED_SERVICE");
@@ -89,7 +89,12 @@ public class GssCli {
 		return name.getPointer(0);
 	}
 
-	public void importContext(byte[] inputToken) throws Exception {
+	public Pointer importName(String str) throws Exception {
+		return importName(str,false);
+	}
+
+
+		public void importContext(byte[] inputToken) throws Exception {
 		minStat = new Memory(INT32_SIZE); //32bit int
 		minStat.setInt(0,0);
 		if(context != null) {
