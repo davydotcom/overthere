@@ -93,7 +93,7 @@ public class GssCli {
 
 		majStat = LibGss.INSTANCE.gss_import_sec_context(minStat, inTok, context);
 		if(majStat != 0) {
-			throw new Exception("gss_import_context did not return GSS_S_COMPLETE - " + LibGss.GSS_C_ROUTINE_ERRORS.get(majStat));
+			throw new Exception("gss_import_context did not return GSS_S_COMPLETE - " + majStat + " - " + LibGss.GSS_C_ROUTINE_ERRORS.get(majStat));
 
 		}
 	}
