@@ -91,6 +91,7 @@ public class GssCli {
 			inTok.length = inputToken.length;
 		}
 
+		logger.debug("Importing Context Token : " + inputToken + " --- " + inTok.value.getByteArray(0,inTok.length));
 		majStat = LibGss.INSTANCE.gss_import_sec_context(minStat, inTok, context);
 		if(majStat != 0) {
 			throw new Exception("gss_import_context did not return GSS_S_COMPLETE - " + majStat + " - " + LibGss.GSS_C_ROUTINE_ERRORS.get(majStat));
