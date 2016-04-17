@@ -16,7 +16,7 @@ public interface LibGss extends Library {
 	int gss_import_name(Pointer minorStatus, GssBufferDesc inputName, Pointer oid, Pointer outputName);
 
 	//int gss_export_name(int * minor_status, const gss_name_t input_name, gss_buffer_t exported_name);
-	int gss_export_name(Pointer minorStatus, Pointer inputName, Pointer exportedName);
+	int gss_export_name(Pointer minorStatus, GssBufferDesc inputName, Pointer exportedName);
 
 	//int gss_canonicalize_name(int * minor_status, const gss_name_t input_name, const gss_OID mech_type, gss_name_t * output_name)
 	int gss_canonicalize_name(Pointer minorStatus, Pointer inputName, Pointer mechType, Pointer outputName);
@@ -26,7 +26,7 @@ public interface LibGss extends Library {
 	//   int time_req, const gss_channel_bindings_t input_chan_bindings, const gss_buffer_t input_token,
 	//   gss_OID * actual_mech_type, gss_buffer_t output_token, int * ret_flags, int * time_rec);
 	//attach_function :gss_init_sec_context, [Pointer, Pointer, Pointer, Pointer, Pointer, :int, :int, Pointer, Pointer, Pointer, Pointer, Pointer, Pointer], :int
-	int gss_init_sec_context(Pointer minorStatus, Pointer initiatorCredHandle, Pointer contextHandle, Pointer targetName, GssOID mechType, int reqFlags, int timeReq, Pointer inputChanBindings, Pointer inputToken, Pointer actualMechType, Pointer outputToken, Pointer retFlags, Pointer timeRec);
+	int gss_init_sec_context(Pointer minorStatus, Pointer initiatorCredHandle, Pointer contextHandle, Pointer targetName, GssOID mechType, int reqFlags, int timeReq, Pointer inputChanBindings, GssBufferDesc inputToken, Pointer actualMechType, GssBufferDesc outputToken, Pointer retFlags, Pointer timeRec);
 
 	// int gss_accept_sec_context(int *minor_status, gss_ctx_id_t *context_handle, const gss_cred_id_t acceptor_cred_handle,
 	//   const gss_buffer_t input_token_buffer, const gss_channel_bindings_t input_chan_bindings, gss_name_t *src_name, gss_OID *mech_type,

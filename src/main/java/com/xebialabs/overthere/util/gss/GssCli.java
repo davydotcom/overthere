@@ -108,7 +108,7 @@ public class GssCli {
 		GssBufferDesc outTok = new GssBufferDesc();
 
 		Pointer returnFlags = new Memory(INT32_SIZE);
-		majStat = LibGss.INSTANCE.gss_init_sec_context(minStat, null, pctx, intSvcName, mech, flags, 0 ,null, inTok.getPointer(), null, outTok.getPointer(), returnFlags, null);
+		majStat = LibGss.INSTANCE.gss_init_sec_context(minStat, null, pctx, intSvcName, mech, flags, 0 ,null, inTok, null, outTok, returnFlags, null);
 		if(majStat == 1) {
 			logger.debug("Native gss InitContext majState = 1 - " + (outTok.length > 0 ? outTok.value.getByteArray(0,outTok.length) : null));
 			return outTok.length > 0 ? outTok.value.getByteArray(0,outTok.length) : null;
