@@ -105,10 +105,11 @@ public class GssCli {
 
 
 	public byte[] deleteContext() {
-		GssBufferDesc outTok = new GssBufferDesc();
-		majStat = LibGss.INSTANCE.gss_delete_sec_context(minStat,context, outTok);
+//		GssBufferDesc outTok = new GssBufferDesc();
+//		majStat = LibGss.INSTANCE.gss_delete_sec_context(minStat,context, outTok);
 		context = null;
-		return outTok.value.getByteArray(0,outTok.length);
+//		return outTok.value.getByteArray(0,outTok.length);
+		return null;
 	}
 
 	public byte[] initContext(byte[] inputToken, Integer flags, boolean delegate) {
