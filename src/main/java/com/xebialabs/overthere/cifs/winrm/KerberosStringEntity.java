@@ -94,6 +94,14 @@ public class KerberosStringEntity extends StringEntity implements Cloneable{
 		}catch (final UnsupportedEncodingException ex) {
 			// should never happen
 		}
+		catch(final Exception exc) {
+			try {
+				body = sourceText.getBytes(charset.name());
+			}catch (final UnsupportedEncodingException ex2) {
+				// should never happen
+			}
+
+		}
 		logger.debug("Sending Request SOAP Body: " + new String(body));
 		return body;
 	}
@@ -150,7 +158,7 @@ public class KerberosStringEntity extends StringEntity implements Cloneable{
 
 	}
 
-	public EncryptedMessage encryptMessage(String content) {
+	public EncryptedMessage encryptMessage(String content) throws Exception {
 		int iovCount = 3;
 		GssIOVBufferDesc[] iov = new GssIOVBufferDesc[3];
 
@@ -168,7 +176,7 @@ public class KerberosStringEntity extends StringEntity implements Cloneable{
 		logger.debug("Calling gss wrap library");
 		int majStat = LibGss.INSTANCE.gss_wrap_iov(minStat, gssCli.getContext(),1,LibGss.GSS_C_QOP_DEFAULT,confState,iov,iovCount);
 		if(majStat != 0) {
-			throw new Exception("gss_import_context did not return GSS_S_COMPLETE - " + LibGss.GSS_C_ROUTINE_ERRORS.get(majStat) " - Minor : " + minStat.getInt(0));
+			throw new Exception("gss_import_context did not return GSS_S_COMPLETE - " + LibGss.GSS_C_ROUTINE_ERRORS.get(majStat) + " - Minor : " + minStat.getInt(0));
 		}
 		ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
 		ByteBuffer intLen = ByteBuffer.allocate(4);
@@ -181,7 +189,7 @@ public class KerberosStringEntity extends StringEntity implements Cloneable{
 			if(padLength > 0) {
 				byteBuffer.write(iov[2].buffer.value.getByteArray(0, iov[2].buffer.length));
 			}
-			logger.debug("Returning Encrypted Message: - " byteBuffer.toByteArray());
+			logger.debug("Returning Encrypted Message: - " + byteBuffer.toByteArray());
 			return new EncryptedMessage(padLength, byteBuffer.toByteArray());
 		} catch(IOException ex) {
 			//not gonna happen
