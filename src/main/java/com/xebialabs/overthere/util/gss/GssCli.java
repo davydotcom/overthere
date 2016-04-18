@@ -209,11 +209,11 @@ public class GssCli {
 		StringBuilder statusStrings = new StringBuilder();
 
 		statusStrings.append(buffer.getValue());
-		while(mcontext.getInt(0) > 0 ) {
-			statusStrings.append("\n");
-			LibGss.INSTANCE.gss_display_status(minStat,statusValue,LibGss.GSS_C_MECH_CODE,mech,mcontext, buffer);
-			statusStrings.append(buffer);
-		}
+//		while(mcontext.getInt(0) > 0 ) {
+//			statusStrings.append("\n");
+//			LibGss.INSTANCE.gss_display_status(minStat,statusValue,LibGss.GSS_C_MECH_CODE,mech,mcontext, buffer);
+//			statusStrings.append(buffer);
+//		}
 		return statusStrings.toString();
 	}
 
