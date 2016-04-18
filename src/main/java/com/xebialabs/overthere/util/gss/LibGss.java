@@ -101,7 +101,7 @@ public interface LibGss extends Library {
 	int krb5_gss_register_acceptor_identity(String identity);
 
 	// int gss_display_status(int *minor_status, int status_value, int status_type, gss_OID mech_type, int *message_context, gss_buffer_t status_string)
-	int gss_display_status(Pointer minorStatus, int statusValue, int statusType, Pointer mechType, Pointer messageContext, Pointer statusString);
+	int gss_display_status(Pointer minorStatus, int statusValue, int statusType, Pointer mechType, Pointer messageContext, GssBufferDesc statusString);
 
 	// int gss_krb5_copy_ccache(int *minor_status, gss_cred_id_t cred_handle, krb5_ccache out_ccache)
 	int gss_krb5_copy_ccache(Pointer minorStatus, Pointer credHandle, Pointer outCCache);

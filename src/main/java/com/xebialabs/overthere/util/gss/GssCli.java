@@ -177,6 +177,7 @@ public class GssCli {
 		majStat = LibGss.INSTANCE.gss_init_sec_context(minStat, null, context, intSvcName, mech, flags, 0 ,null, inTok, null, outTok, returnFlags, null);
 		if(majStat == 1) {
 			logger.debug("Native gss InitContext majState = 1 - " + (outTok.length > 0 ? outTok.value.getByteArray(0,outTok.length) : null));
+			logger.debug("Status: " + getMinorStatus(minStat.getInt(0)));
 			return outTok.length > 0 ? outTok.value.getByteArray(0,outTok.length) : null;
 		}
 		logger.debug("Not resultant token - " + LibGss.GSS_C_ROUTINE_ERRORS.get(majStat) + " - Minor: "  + Integer.toHexString(minStat.getInt(0)));
@@ -192,7 +193,27 @@ public class GssCli {
 	}
 
 	public byte[] initContext() {
+
 		return initContext(null,null,false);
+	}
+
+
+	public String getMinorStatus(int statusValue) {
+		Pointer mech = Pointer.NULL;
+		minStat = new Memory(INT32_SIZE); //32bit int
+		Pointer mcontext = new Memory(INT32_SIZE);
+		GssBufferDesc buffer = new GssBufferDesc();
+		LibGss.INSTANCE.gss_display_status(minStat,statusValue,LibGss.GSS_C_MECH_CODE,mech,mcontext, buffer);
+
+		StringBuilder statusStrings = new StringBuilder();
+
+		statusStrings.append(buffer.getValue());
+		while(mcontext.getInt(0) > 0 ) {
+			statusStrings.append("\n");
+			LibGss.INSTANCE.gss_display_status(minStat,statusValue,LibGss.GSS_C_MECH_CODE,mech,mcontext, buffer);
+			statusStrings.append(buffer);
+		}
+		return statusStrings.toString();
 	}
 
 	private static Logger logger = LoggerFactory.getLogger(KerberosStringEntity.class);
