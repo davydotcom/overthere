@@ -177,10 +177,11 @@ public class GssCli {
 		majStat = LibGss.INSTANCE.gss_init_sec_context(minStat, null, context, intSvcName, mech, flags, 0 ,null, inTok, null, outTok, returnFlags, null);
 		if(majStat == 1) {
 			logger.debug("Native gss InitContext majState = 1 - " + (outTok.length > 0 ? outTok.value.getByteArray(0,outTok.length) : null));
-			logger.debug("Status: " + getMinorStatus(minStat.getInt(0)));
 			return outTok.length > 0 ? outTok.value.getByteArray(0,outTok.length) : null;
 		}
 		logger.debug("Not resultant token - " + LibGss.GSS_C_ROUTINE_ERRORS.get(majStat) + " - Minor: "  + Integer.toHexString(minStat.getInt(0)));
+		logger.debug("Status: " + getMinorStatus(minStat.getInt(0)));
+
 		return null;
 	}
 
